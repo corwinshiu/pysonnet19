@@ -95,10 +95,12 @@ class SonnetConfigData:
         #The different thing is we need to set which polygon contains the ports 
         self.ports = [{"index": 1, #Port numbering 1 
                        "loc": (0, self.box_size_y/2),
-                       "layer": 1},
+                       "layer": 1,
+                       "resistance": 50},
                       {"index": 2,
                        "loc": (self.box_size_x, self.box_size_y/2),
-                       "layer": 1}]
+                       "layer": 1,
+                       "resistance": 50}]
         
         # Sweep settings
         self.freq_sweep_set = ""  # Will be set to actual ID in CreateMacroCommandFile

@@ -238,28 +238,25 @@ class CreateMacroCommandFile:
 
         
     def add_port(self, port_properties): #polygon_macro_id_string):
-        """Writes the first 'add port' line to the .smc file."""
-
-
-        '''
-        for i in range(2):
-            port_macro_id_string = GlobalFields.PORT_STR + generate_macro_id(self.port_macro_id)
-
-            add_port_string = (
-                f"add {GlobalFields.PORT_STR} "
-                f"id={port_macro_id_string} "
-                f"port_number={self.config.port1_number if i == 0 else self.config.port2_number} "
-                f"poly={polygon_macro_id_string} "
-                f"edge={self.config.port1_edge if i == 0 else self.config.port2_edge}\n\n"
-            )
-            self.sonnet_macro_command_file.write(add_port_string)
-            self.port_macro_id += 1
-        '''
+        """ Create a port """
+        default_port_imped = {
+            "resistance": 50,
+            "reactance": 0,
+            "inductance": 0,
+            "capacitance": 0}
+        port_properties = {**default_port_imped, **port_properties}
+        
         #Unpack the port properties
         port_number = port_properties["index"]
         x,y = port_properties["loc"]
         layer = port_properties["layer"]
-
+        resistance = port_properties["resistance"]
+        #Note: The macro files don't have these as options that work
+        # maybe this will be patched in a future software update
+        reactance = port_properties["reactance"]
+        inductance= port_properties["inductance"]
+        capacitance = port_properties["capacitance"]
+        
         #Find the ID of the polygon to place the port, and the edge number 
         pid, edge_number = self.find_polygon_at_point(x,y, layer)
         
@@ -269,7 +266,11 @@ class CreateMacroCommandFile:
             f"id={port_macro_id_string} "
             f"port_number={port_number} "
             f"poly={pid} "
-            f"edge={edge_number}\n\n" #TODO: Can't be edge 0. We have to figure out which edge based on the polygon
+            f"edge={edge_number} "
+            f"Resistance={resistance} \n\n"
+            #f"Reactance={reactance} \n\n"
+            #f"Inductance={inductance} "
+            #f"Capacitance={capacitance} \n\n" 
         )
         self.sonnet_macro_command_file.write(add_port_string)
         self.port_macro_id += 1
