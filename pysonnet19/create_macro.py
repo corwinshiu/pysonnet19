@@ -278,8 +278,10 @@ class CreateMacroCommandFile:
     def find_polygon_at_point(self, x,y, layer):
         """Return the polygon ID that contains (x,y)"""
         for poly in self.config.polygons:
+            
             pid = poly["id"]
             points = poly["points_in_2d"]
+            
             polylayer = poly["layer"] #poly["layer"] is the index of the layer, not the name of the layer (the tech layer)
             #Check if we are in the correct layer 
             if layer != polylayer:
@@ -300,7 +302,7 @@ class CreateMacroCommandFile:
             check = self.point_on_segment(x,y, x1,y1,x2,y2)
             if check:
                 return True, i #i is the edge number
-        return False 
+        return False, _ 
 
         
     def point_on_segment(self, x, y, x1, y1, x2, y2, eps=1e-12):
