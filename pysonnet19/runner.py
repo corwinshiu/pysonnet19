@@ -6,7 +6,8 @@ import subprocess
 def run_macro_command_file(macro_command_file_path, new_sonnet_file_path):
     #Load the sonnet directory
     if os.environ.get("SONNET_DIR") is not None:
-        run_macro = os.environ.get("SONNET_DIR") + "/bin/runmacro"
+        sonnet_path = os.environ.get("SONNET_DIR") + "/bin/"
+        run_macro =  sonnet_path + "runmacro"
     else:
         raise EnvironmentalError(f"Sonnet path is not correctly configured.")
     if sys.platform.startswith('win'):
@@ -25,3 +26,7 @@ def run_macro_command_file(macro_command_file_path, new_sonnet_file_path):
     # print("Macro Output:", result.stdout)
     if result.stderr != "":
         print("Error:", result.stderr)
+
+
+    #Work around for now, because the analyze() function has a bug
+    subprocess.call(sonnet_path + "sonnet -analyze -Run -CloseWhenDone {}".format(new_sonnet_file_path), shell = True)

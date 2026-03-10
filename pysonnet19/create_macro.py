@@ -420,7 +420,8 @@ class CreateMacroCommandFile:
         self.add_sweepset(self.config.freq_sweep_dict)
         self.add_output_file()
         self.save_project()
-        self.analyze_project()
+        print('Commented out the analyze_project() due to bug')
+        #self.analyze_project()
         self.close_file()
         print("\n************************      CREATED " + self.output_path +
               "      ************************")
