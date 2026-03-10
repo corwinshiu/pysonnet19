@@ -266,8 +266,8 @@ class CreateMacroCommandFile:
             f"id={port_macro_id_string} "
             f"port_number={port_number} "
             f"poly={pid} "
-            f"edge={edge_number} "
-            f"Resistance={resistance} \n\n"
+            f"edge={edge_number} \n\n"
+            #f"Resistance={resistance} \n\n" #This doesn't always work??
             #f"Reactance={reactance} \n\n"
             #f"Inductance={inductance} "
             #f"Capacitance={capacitance} \n\n" 
@@ -305,7 +305,7 @@ class CreateMacroCommandFile:
         return False, _ 
 
         
-    def point_on_segment(self, x, y, x1, y1, x2, y2, eps=1e-12):
+    def point_on_segment(self, x, y, x1, y1, x2, y2, eps=1e-4):
         # Check if (x,y) lies on the line segment [(x1,y1),(x2,y2)]
         dx = x2 - x1
         dy = y2 - y1
@@ -321,7 +321,7 @@ class CreateMacroCommandFile:
         closest_y = y1 + t * dy
         return ((x - closest_x)**2 + (y - closest_y)**2) < eps**2
 
-    def add_sweepset(self):
+    def add_sweepset(self, freq_sweep_dict):
         """Writes the 'add sweepset' line to the .smc file."""
         sweepset_macro_id_string = GlobalFields.SWEEPSET_STR + generate_macro_id(self.sweepset_macro_id)
 
@@ -334,20 +334,34 @@ class CreateMacroCommandFile:
 
         # Save the generated ID
         self.config.freq_sweep_set = sweepset_macro_id_string
-        self.add_freq_sweep(sweepset_macro_id_string)
+        self.add_freq_sweep(sweepset_macro_id_string, freq_sweep_dict)
 
-    def add_freq_sweep(self, sweepset_macro_id_string):
+    def add_freq_sweep(self, sweepset_macro_id_string, freq_sweep_dict):
         """Writes the 'add freq_sweep' line to the .smc file."""
         freq_sweep_macro_id_string = GlobalFields.FREQ_SWEEP_STR + generate_macro_id(self.freq_sweep_macro_id)
-
-        add_freq_sweep_string = (
-            f"add {GlobalFields.FREQ_SWEEP_STR} "
-            f"id={freq_sweep_macro_id_string} "
-            f"set={sweepset_macro_id_string} "
-            f"{self.config.freq_sweep_adaptive} "
-            f"start={self.config.freq_sweep_start} "
-            f"stop={self.config.freq_sweep_stop}\n\n"
-        )
+        sweep_type = freq_sweep_dict["type"]
+        sweep_start = freq_sweep_dict["start"]
+        sweep_stop = freq_sweep_dict["stop"]
+        sweep_step =freq_sweep_dict["step"]
+        if sweep_type == "adaptive":
+            add_freq_sweep_string = (
+                f"add {GlobalFields.FREQ_SWEEP_STR} "
+                f"id={freq_sweep_macro_id_string} "
+                f"set={sweepset_macro_id_string} "
+                f"{sweep_type} "
+                f"start={sweep_start} "
+                f"stop={sweep_stop}\n\n"
+            )
+        elif sweep_type == "linear":
+                        add_freq_sweep_string = (
+                f"add {GlobalFields.FREQ_SWEEP_STR} "
+                f"id={freq_sweep_macro_id_string} "
+                f"set={sweepset_macro_id_string} "
+                f"{sweep_type} "
+                f"start={sweep_start} "
+                f"stop={sweep_stop} "
+                f"step={sweep_step} \n\n"
+            )
         self.sonnet_macro_command_file.write(add_freq_sweep_string)
         self.freq_sweep_macro_id += 1
 
@@ -403,7 +417,7 @@ class CreateMacroCommandFile:
         for port in self.config.ports:
             self.add_port(port)
             
-        self.add_sweepset()
+        self.add_sweepset(self.config.freq_sweep_dict)
         self.add_output_file()
         self.save_project()
         self.analyze_project()
