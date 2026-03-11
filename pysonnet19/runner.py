@@ -12,7 +12,7 @@ def run_macro_command_file(macro_command_file_path, new_sonnet_file_path):
         raise EnvironmentalError(f"Sonnet path is not correctly configured.")
     if sys.platform.startswith('win'):
         run_macro += ".exe"
-
+    print(run_macro)
     print("Running macro command file: " + macro_command_file_path)
 
     # Add "-v" to macro_command_line if you want the macro language to generate output and uncomment stdout print statement

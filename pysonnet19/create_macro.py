@@ -9,6 +9,8 @@ class GlobalFields:
     CONDUCTOR_STR = "conductor"
     TECH_LAYER_PLANAR_STR = "tech_layer_planar"
     PLANAR_TL_STR = "planarTL"
+    VIA_TECH_LAYER_PLANAR_STR = "tech_layer_via"
+    VIA_TL_STR = "viaTL"
     POLYGON_STR = "polygon"
     PORT_STR = "port"
     SWEEPSET_STR = "sweepset"
@@ -49,6 +51,7 @@ class CreateMacroCommandFile:
         self.diel_layer_macro_id = 1
         self.conductor_macro_id = 1
         self.tech_layer_macro_id = 1
+        self.viatech_layer_macro_id = 1
         self.polygon_macro_id = 1
         self.port_macro_id = 1
         self.sweepset_macro_id = 1
@@ -164,7 +167,8 @@ class CreateMacroCommandFile:
         conductor_macro_id_string = GlobalFields.CONDUCTOR_STR + generate_macro_id(self.conductor_macro_id)
         add_conductor_string = (
             f"add {GlobalFields.CONDUCTOR_STR} "
-            f"id={conductor_macro_id_string} LossType=SURFACE_IMPEDANCE "
+            #f'id={conductor_macro_id_string} LossType="Surface Impedance" ' #Sonnet support recommended this, but I found it didn't work
+            f'id={conductor_macro_id_string} LossType=SURFACE_IMPEDANCE '
             f"Name={name} "
             f"Rdc={Rdc} "
             f"Rrf={Rrf} "
@@ -207,8 +211,38 @@ class CreateMacroCommandFile:
         #We want the name or the level to retrieve the right ID 
         self.config.tech_layer_mapping[name] = {'id': tech_layer_macro_id_string,
                                                 'level': level}
+
         
+    def add_tech_layer_via(self, tech_params):
+        name = tech_params["name"]
+        level_from = tech_params["begin_level"]
+        level_to = tech_params["end_level"]
+        model = tech_params["model"]
         
+        id_level_from = self.layers_macro_list[level_from]
+        id_level_to = self.layers_macro_list[level_to]
+
+        """Writes the 'add tech_layer_planar' line to the .smc file."""
+        tech_layer_macro_id_string = GlobalFields.VIA_TL_STR + generate_macro_id(self.viatech_layer_macro_id)
+        #diel_layer_id = self.layers_macro_list[level] #Retrieve the correct dielectric layer id 
+
+        # Set the tech layer ID in the config for later reference
+        #self.config.tech_layer_diel = diel_layer_id
+                
+        add_tech_layer_string = (
+            f"add {GlobalFields.VIA_TECH_LAYER_PLANAR_STR} "
+            f"id={tech_layer_macro_id_string} "
+            f"from={id_level_from} "
+            f"to={id_level_to} \n\n"
+            #f"MaterialName={material} \n\n "
+        )
+        self.sonnet_macro_command_file.write(add_tech_layer_string)
+        self.viatech_layer_macro_id += 1
+        #We should'nt create vias before creating 
+        self.config.tech_layer_mapping[name] = {'id': tech_layer_macro_id_string,
+                                                'level': [level_from, level_to]}
+
+                
     def add_polygon(self, polygon_dict):
         tech_layer = polygon_dict["tech_layer"]
         
@@ -409,8 +443,12 @@ class CreateMacroCommandFile:
         for m in self.config.conductors:
             self.add_conductor_general_metal(m)
 
-        for t in self.config.tech_layers: 
-            self.add_tech_layer_planar(t)
+        for t in self.config.tech_layers:
+            if t['model'] in ["Thin Metal", "Thick Metal", "TrueVolume"]: 
+                self.add_tech_layer_planar(t)
+            elif t['model'] in ["Via"]:
+                self.add_tech_layer_via(t) 
+            
         for poly in self.config.polygons:
             self.add_polygon(poly)
 
