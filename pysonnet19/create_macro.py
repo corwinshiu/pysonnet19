@@ -376,7 +376,6 @@ class CreateMacroCommandFile:
         sweep_type = freq_sweep_dict["type"]
         sweep_start = freq_sweep_dict["start"]
         sweep_stop = freq_sweep_dict["stop"]
-        sweep_step =freq_sweep_dict["step"]
         if sweep_type == "adaptive":
             add_freq_sweep_string = (
                 f"add {GlobalFields.FREQ_SWEEP_STR} "
@@ -387,7 +386,9 @@ class CreateMacroCommandFile:
                 f"stop={sweep_stop}\n\n"
             )
         elif sweep_type == "linear":
-                        add_freq_sweep_string = (
+            sweep_step =freq_sweep_dict["step"]
+
+            add_freq_sweep_string = (
                 f"add {GlobalFields.FREQ_SWEEP_STR} "
                 f"id={freq_sweep_macro_id_string} "
                 f"set={sweepset_macro_id_string} "
@@ -451,7 +452,8 @@ class CreateMacroCommandFile:
             
         for poly in self.config.polygons:
             self.add_polygon(poly)
-
+        #TODO: FOR SOME REASON THIS IS BUGGING OUT 
+        #print("COMMENTED OUT ADDING PORTS IN L456 in pysonnet19/create_macro.py")
         for port in self.config.ports:
             self.add_port(port)
             
